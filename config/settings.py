@@ -1,17 +1,27 @@
 import os
 from pathlib import Path
 from datetime import timedelta
+import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# FIXED: use env vars (fallback for dev)
+# SECRET_KEY - Render'da environment'dan olinadi
 SECRET_KEY = os.environ.get('SECRET_KEY', 'o&x=hhp!k2(4hfb#0=81y1)xnk4_qn5@jeqo@z3q(h_t*@&kcq')
-DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
+# DEBUG - Render'da False bo'lishi kerak
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
+
+# ALLOWED_HOSTS
 ALLOWED_HOSTS = ['*']
 
+# CSRF uchun Render domeni
+CSRF_TRUSTED_ORIGINS = [
+    'https://*.onrender.com',
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+]
+
 INSTALLED_APPS = [
-    # FIXED: whitenoise.runserver_nostatic must come first
     'whitenoise.runserver_nostatic',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -22,7 +32,6 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
-    # FIXED: removed drf_yasg (unmaintained, unused)
     'rest',
 ]
 
@@ -43,7 +52,6 @@ ROOT_URLCONF = 'config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        # FIXED: added project-level templates dir
         'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -59,11 +67,13 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
+# Database - Render'da PostgreSQL, lokalda SQLite
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default=f'sqlite:///{BASE_DIR / "db.sqlite3"}',
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
 }
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -78,12 +88,15 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-STATIC_URL = 'static/'
+# Static fayllar
+STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# Media fayllar
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# FIXED: use STORAGES (Django 4.2+/5.x style)
+# Whitenoise static fayllar uchun
 STORAGES = {
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
@@ -95,15 +108,12 @@ STORAGES = {
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# CORS
+# CORS sozlamalari
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOWED_ORIGINS = [
-    'http://localhost:5173',
-    'http://127.0.0.1:5173',
-    'http://localhost:3000',
-    'http://127.0.0.1:3000',
-]
+
+# (CORS_ALLOWED_ORIGINS ni o'chirdik - CORS_ALLOW_ALL_ORIGINS = True bilan ziddiyat)
+
 CORS_ALLOWED_HEADERS = [
     'accept', 'accept-encoding', 'authorization', 'content-type',
     'dnt', 'origin', 'user-agent', 'x-csrftoken', 'x-requested-with',
