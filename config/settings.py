@@ -33,6 +33,8 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'corsheaders',
     'rest',
+    'cloudinary_storage',      
+    'cloudinary',      
 ]
 
 MIDDLEWARE = [
@@ -94,10 +96,9 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# Whitenoise static fayllar uchun
 STORAGES = {
     "default": {
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
+        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",   # ← o'zgardi
     },
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
@@ -151,4 +152,11 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_REFRESH_EXP_CLAIM': 'refresh_exp',
     'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
+}
+
+# Cloudinary sozlamalari
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', 'wawdozxc'),
+    'API_KEY': os.environ.get('CLOUDINARY_API_KEY', '979465949363815'),
+    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', 'vUnOegBMbgJjXiirnizgl1Jznjc'),
 }
