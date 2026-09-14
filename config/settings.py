@@ -5,42 +5,56 @@ import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# SECRET_KEY - Render'da environment'dan olinadi
-SECRET_KEY = os.environ.get('SECRET_KEY', 'o&x=hhp!k2(4hfb#0=81y1)xnk4_qn5@jeqo@z3q(h_t*@&kcq')
+# ═══════════════════════════════════════════════════════════
+# SECURITY (Render + Lokal)
+# ═══════════════════════════════════════════════════════════
+SECRET_KEY = os.environ.get(
+    'SECRET_KEY',
+    'django-insecure-local-dev-key-change-me-in-production-12345'
+)
 
-# DEBUG - Render'da False bo'lishi kerak
-DEBUG = os.environ.get('DEBUG', 'False') == 'True'
+# Render'da DEBUG=False, lokalda True
+DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
-# ALLOWED_HOSTS
 ALLOWED_HOSTS = ['*']
 
-# CSRF uchun Render domeni
 CSRF_TRUSTED_ORIGINS = [
     'https://*.onrender.com',
     'http://localhost:5173',
     'http://127.0.0.1:5173',
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
 ]
 
+# ═══════════════════════════════════════════════════════════
+# INSTALLED APPS
+# ═══════════════════════════════════════════════════════════
 INSTALLED_APPS = [
-    'whitenoise.runserver_nostatic',
+    'whitenoise.runserver_nostatic',    # ✅ Render uchun
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    # 3rd party
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
+
+    # Local
     'rest',
-    'cloudinary_storage',      
-    'cloudinary',      
 ]
 
+# ═══════════════════════════════════════════════════════════
+# MIDDLEWARE
+# ═══════════════════════════════════════════════════════════
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',    # ✅ Render uchun
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -51,6 +65,9 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'config.urls'
 
+# ═══════════════════════════════════════════════════════════
+# TEMPLATES
+# ═══════════════════════════════════════════════════════════
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -69,6 +86,9 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
+# ═══════════════════════════════════════════════════════════
+# DATABASE — Render PostgreSQL + Lokal SQLite
+# ═══════════════════════════════════════════════════════════
 DATABASES = {
     'default': dj_database_url.config(
         default=f'sqlite:///{BASE_DIR / "db.sqlite3"}',
@@ -76,6 +96,9 @@ DATABASES = {
     )
 }
 
+# ═══════════════════════════════════════════════════════════
+# AUTH
+# ═══════════════════════════════════════════════════════════
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
@@ -83,65 +106,84 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
+AUTH_USER_MODEL = 'rest.User'
+
+# ═══════════════════════════════════════════════════════════
+# I18N
+# ═══════════════════════════════════════════════════════════
 LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Tashkent'
 USE_I18N = True
 USE_TZ = True
 
-# Static fayllar
+# ═══════════════════════════════════════════════════════════
+# STATIC & MEDIA
+# ═══════════════════════════════════════════════════════════
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# Media fayllar
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+# ═══════════════════════════════════════════════════════════
+# STORAGES — Whitenoise (Render uchun)
+# ═══════════════════════════════════════════════════════════
 STORAGES = {
-    "default": {
-        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",   # ← o'zgardi
+    'default': {
+        'BACKEND': 'django.core.files.storage.FileSystemStorage',
     },
-    "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    'staticfiles': {
+        'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
     },
 }
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# CORS sozlamalari
+# ═══════════════════════════════════════════════════════════
+# CORS — Render + Lokal
+# ═══════════════════════════════════════════════════════════
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 
-# (CORS_ALLOWED_ORIGINS ni o'chirdik - CORS_ALLOW_ALL_ORIGINS = True bilan ziddiyat)
-
 CORS_ALLOWED_HEADERS = [
-    'accept', 'accept-encoding', 'authorization', 'content-type',
-    'dnt', 'origin', 'user-agent', 'x-csrftoken', 'x-requested-with',
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
 ]
+
 CORS_ALLOWED_METHODS = ['DELETE', 'GET', 'OPTIONS', 'PATCH', 'POST', 'PUT']
 
+# ═══════════════════════════════════════════════════════════
+# REST FRAMEWORK
+# ═══════════════════════════════════════════════════════════
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
+    'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
-    ],
-    'DEFAULT_PERMISSION_CLASSES': [
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.AllowAny',
-    ],
+    ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10,
 }
 
+# ═══════════════════════════════════════════════════════════
+# JWT
+# ═══════════════════════════════════════════════════════════
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=2),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
     'ROTATE_REFRESH_TOKENS': False,
-    'BLACKLIST_AFTER_ROTATION': True,
+    'BLACKLIST_AFTER_ROTATION': False,
     'UPDATE_LAST_LOGIN': False,
     'ALGORITHM': 'HS256',
     'SIGNING_KEY': SECRET_KEY,
-    'VERIFYING_KEY': None,
-    'AUDIENCE': None,
-    'ISSUER': None,
     'AUTH_HEADER_TYPES': ('Bearer',),
     'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
     'USER_ID_FIELD': 'id',
@@ -149,14 +191,4 @@ SIMPLE_JWT = {
     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
     'TOKEN_TYPE_CLAIM': 'token_type',
     'JTI_CLAIM': 'jti',
-    'SLIDING_TOKEN_REFRESH_EXP_CLAIM': 'refresh_exp',
-    'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
-    'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
-}
-
-# Cloudinary sozlamalari
-CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', 'wawdozxc'),
-    'API_KEY': os.environ.get('CLOUDINARY_API_KEY', '979465949363815'),
-    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', 'vUnOegBMbgJjXiirnizgl1Jznjc'),
 }
